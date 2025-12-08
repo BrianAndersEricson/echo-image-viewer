@@ -15,6 +15,7 @@ const state = {
     originalImageDimensions: { width: 0, height: 0 },
     browsePath: '',  // Current path in folder browser
     recentGalleries: [],  // Recently used galleries
+    blackout: false,  // Blackout mode active
     // Edit mode state
     editMode: {
         active: false,
@@ -373,6 +374,15 @@ function initKeyboardControls() {
             return;
         }
 
+        // Blackout mode - B key toggles when viewer is active or blackout is active
+        if (e.key.toLowerCase() === 'b') {
+            if (state.blackout || viewerView.classList.contains('active')) {
+                e.preventDefault();
+                toggleBlackout();
+                return;
+            }
+        }
+
         // Handle edit mode keyboard shortcuts first
         if (state.editMode.active) {
             if (handleEditModeKeyboard(e)) return;
@@ -443,6 +453,27 @@ function openHelp() {
 function closeHelp() {
     const helpOverlay = document.getElementById('help-overlay');
     helpOverlay.style.display = 'none';
+}
+
+// Blackout functions
+function toggleBlackout() {
+    const blackoutOverlay = document.getElementById('blackout-overlay');
+    if (state.blackout) {
+        // Exit blackout mode
+        state.blackout = false;
+        blackoutOverlay.style.display = 'none';
+    } else {
+        // Enter blackout mode
+        state.blackout = true;
+        blackoutOverlay.style.display = 'flex';
+    }
+}
+
+function exitBlackoutToHome() {
+    // Exit blackout and close viewer, return to welcome/gallery view
+    state.blackout = false;
+    document.getElementById('blackout-overlay').style.display = 'none';
+    closeViewer();
 }
 
 // Delete functions

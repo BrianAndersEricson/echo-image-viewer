@@ -359,6 +359,7 @@
                         <div class="shortcut"><kbd>G</kbd> <span>Last image</span></div>
                         <div class="shortcut"><kbd>Space</kbd> <span>Toggle menu</span></div>
                         <div class="shortcut"><kbd>e</kbd> <span>Open edit mode</span></div>
+                        <div class="shortcut"><kbd>b</kbd> <span>Blackout screen</span></div>
                         <div class="shortcut"><kbd>Delete</kbd> / <kbd>x</kbd> <span>Delete image</span></div>
                         <div class="shortcut"><kbd>q</kbd> / <kbd>Esc</kbd> <span>Back to gallery</span></div>
                         <div class="shortcut"><kbd>?</kbd> <span>Show this help</span></div>
@@ -398,6 +399,14 @@
                 <button class="dialog-btn danger" onclick="confirmDelete()">Delete</button>
                 <button class="dialog-btn cancel" onclick="closeDeleteDialog()">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Blackout Overlay -->
+    <div id="blackout-overlay" class="blackout-overlay" style="display: none;">
+        <div class="blackout-content">
+            <button class="blackout-home-btn" onclick="exitBlackoutToHome()">Return to Homepage</button>
+            <p class="blackout-hint">Press <kbd>b</kbd> to return to image</p>
         </div>
     </div>
 
