@@ -50,8 +50,8 @@ async def auth_middleware(request: Request, call_next):
             content={"detail": "Not authenticated"}
         )
 
-    # For static assets (js, css, images), return 401 to avoid broken pages
-    static_extensions = [".js", ".css", ".png", ".jpg", ".svg", ".ico", ".woff", ".woff2"]
+    # For static assets (js, css, images, manifest), return 401 to avoid broken pages
+    static_extensions = [".js", ".css", ".png", ".jpg", ".svg", ".ico", ".woff", ".woff2", ".json"]
     if any(path.endswith(ext) for ext in static_extensions):
         return JSONResponse(
             status_code=401,
