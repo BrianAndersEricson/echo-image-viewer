@@ -1,0 +1,25 @@
+services:
+  echo:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount directories you want to browse - adjust paths for your system
+      # Use :ro for read-only or :rw for read-write (needed for editing/deleting)
+      - ${HOME}:/mnt/Home:rw
+      # Add more paths as needed:
+      # - /media:/mnt/Media:ro
+      # - /path/to/photos:/mnt/Photos:ro
+      # Persist auth credentials (only used if AUTH_ENABLED=true)
+      - echo-data:/app/data
+    environment:
+      # Base path inside container where mounted volumes are accessible
+      - BROWSE_ROOT=/mnt
+      # Authentication - set to "true" to require login
+      - AUTH_ENABLED=false
+      # Session expiry in hours (default: 168 = 1 week)
+      # - SESSION_EXPIRY_HOURS=168
+    restart: unless-stopped
+
+volumes:
+  echo-data:

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo - Image Viewer</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Welcome View (no gallery selected) -->
+        <div id="welcome-view" class="view active">
+            <div class="echo-container">
+                <header class="header">
+                    <h1 class="title">
+                        <span class="typewriter" id="typewriter">Echo</span>
+                        <span class="typing-cursor"></span>
+                    </h1>
+                    <p class="subtitle">Image Gallery Viewer</p>
+                    <div class="header-buttons">
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                            <span class="theme-icon"></span>
+                        </button>
+                        <button id="logout-btn-welcome" class="logout-btn" onclick="logout()" title="Log out" style="display: none;">
+                            Logout
+                        </button>
+                    </div>
+                </header>
+
+                <div class="welcome-content">
+                    <div class="welcome-card">
+                        <h2>Welcome to Echo</h2>
+                        <p>Select a folder on your device to start browsing images.</p>
+                        <button class="browse-btn" onclick="openFolderBrowser()">
+                            Browse Folders
+                        </button>
+                        <div id="recent-galleries" class="recent-galleries"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Folder Browser Dialog -->
+        <div id="folder-browser-dialog" class="dialog" style="display: none;">
+            <div class="dialog-content folder-browser">
+                <div class="dialog-header">
+                    <h3>Select Gallery Folder</h3>
+                    <button class="dialog-close" onclick="closeFolderBrowser()">&times;</button>
+                </div>
+                <nav id="browse-breadcrumbs" class="breadcrumbs browse-breadcrumbs">
+                    <a href="#" data-path="" class="breadcrumb-link" onclick="browseTo(''); return false;">Home</a>
+                </nav>
+                <div id="browse-folder-list" class="browse-folder-list"></div>
+                <div class="dialog-actions">
+                    <button class="dialog-btn" onclick="selectCurrentFolder()" id="select-folder-btn">
+                        Select This Folder
+                    </button>
+                    <button class="dialog-btn cancel" onclick="closeFolderBrowser()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Browser View -->
+        <div id="browser-view" class="view">
+            <div class="echo-container">
+                <header class="header">
+                    <h1 class="title clickable" onclick="openFolderBrowser()" title="Change gallery folder">
+                        Echo
+                    </h1>
+                    <p class="subtitle">
+                        <span id="gallery-name">Gallery</span>
+                        <button class="change-gallery-btn" onclick="openFolderBrowser()" title="Change folder">
+                            Change
+                        </button>
+                    </p>
+                    <div class="header-buttons">
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                            <span class="theme-icon"></span>
+                        </button>
+                        <button id="logout-btn-browser" class="logout-btn" onclick="logout()" title="Log out" style="display: none;">
+                            Logout
+                        </button>
+                    </div>
+                </header>
+
+                <nav id="breadcrumbs" class="breadcrumbs">
+                    <a href="#" data-path="" class="breadcrumb-link">Home</a>
+                </nav>
+
+                <div id="folder-grid" class="folder-grid"></div>
+                <div id="image-grid" class="image-grid"></div>
+
+                <div id="no-images-notice" class="no-images-notice" style="display: none;">
+                    <p>No images in this folder</p>
+                </div>
+
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <div class="empty-icon">📂</div>
+                    <p>This folder is empty</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Viewer View -->
+        <div id="viewer-view" class="view">
+            <div class="viewer-container">
+                <!-- Navigation zones (invisible, click to navigate) -->
+                <div class="nav-zone nav-zone-left" onclick="navigateImage(-1)" title="Previous (h, Left Arrow, or click)"></div>
+                <div class="nav-zone nav-zone-center" onclick="toggleMenu()"></div>
+                <div class="nav-zone nav-zone-right" onclick="navigateImage(1)" title="Next (l, Right Arrow, or click)"></div>
+
+                <!-- Main image display -->
+                <div class="image-wrapper">
+                    <img id="viewer-image" src="" alt="">
+                </div>
+
+                <!-- Image counter below the image -->
+                <div class="viewer-bottom-bar">
+                    <div class="bottom-counter" id="bottom-image-counter">1 / 10</div>
+                    <div class="bottom-filename" id="bottom-image-name">image.jpg</div>
+                </div>
+
+                <!-- Hidden menu (appears on center click) -->
+                <div id="viewer-menu" class="viewer-menu">
+                    <div class="menu-header">
+                        <div class="image-counter-large" id="image-counter">1 / 10</div>
+                        <div class="image-name-row">
+                            <span id="image-name" class="image-name-text">image.jpg</span>
+                            <a href="#" id="open-file-link" class="open-file-btn" title="Open file location" target="_blank">
+                                Open
+                            </a>
+                        </div>
+                        <div class="image-path-row" id="image-path-display"></div>
+                    </div>
+
+                    <div class="menu-section">
+                        <label class="menu-label">Reading Mode</label>
+                        <div class="mode-toggle">
+                            <button id="mode-comic" class="mode-btn active" onclick="setReadingMode('comic')">
+                                Comic (L→R)
+                            </button>
+                            <button id="mode-manga" class="mode-btn" onclick="setReadingMode('manga')">
+                                Manga (R→L)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <label class="menu-label">Edit Image</label>
+                        <button class="edit-mode-btn" onclick="openEditMode()">
+                            <span class="edit-mode-icon">✎</span>
+                            Open Edit Mode
+                        </button>
+                        <p class="edit-mode-hint">Live preview with undo/redo</p>
+                    </div>
+
+                    <div class="menu-section menu-actions">
+                        <button class="action-btn" onclick="closeViewer()">
+                            Back to Gallery
+                        </button>
+                    </div>
+
+                    <div class="menu-footer">
+                        <span class="keybind-hint">
+                            Keys: h/l or ←/→ navigate | q/Esc close | Space toggle menu
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Edit Mode Overlay -->
+                <div id="edit-mode-overlay" class="edit-mode-overlay" style="display: none;">
+                    <div class="edit-mode-container">
+                        <!-- Edit canvas/preview area -->
+                        <div class="edit-preview-area">
+                            <canvas id="edit-canvas"></canvas>
+                            <img id="edit-preview-image" src="" alt="Edit preview">
+                        </div>
+
+                        <!-- Edit toolbar -->
+                        <div class="edit-toolbar">
+                            <div class="edit-toolbar-section">
+                                <span class="edit-section-label">Transform</span>
+                                <button class="edit-tool-btn" onclick="editRotateLeft()" title="Rotate Left (r)">
+                                    <span class="tool-icon">↺</span>
+                                    <span class="tool-label">-90°</span>
+                                </button>
+                                <button class="edit-tool-btn" onclick="editRotateRight()" title="Rotate Right (R)">
+                                    <span class="tool-icon">↻</span>
+                                    <span class="tool-label">+90°</span>
+                                </button>
+                                <button class="edit-tool-btn" onclick="editFlipH()" title="Flip Horizontal (f)">
+                                    <span class="tool-icon">⇔</span>
+                                    <span class="tool-label">Flip H</span>
+                                </button>
+                                <button class="edit-tool-btn" onclick="editFlipV()" title="Flip Vertical (F)">
+                                    <span class="tool-icon">⇕</span>
+                                    <span class="tool-label">Flip V</span>
+                                </button>
+                            </div>
+
+                            <div class="edit-toolbar-section">
+                                <span class="edit-section-label">Adjust</span>
+                                <button class="edit-tool-btn" onclick="openEditCrop()" title="Crop (c)">
+                                    <span class="tool-icon">⬒</span>
+                                    <span class="tool-label">Crop</span>
+                                </button>
+                                <button class="edit-tool-btn" onclick="openEditResize()" title="Resize (s)">
+                                    <span class="tool-icon">⤢</span>
+                                    <span class="tool-label">Resize</span>
+                                </button>
+                            </div>
+
+                            <div class="edit-toolbar-section edit-history">
+                                <span class="edit-section-label">History</span>
+                                <button class="edit-tool-btn" onclick="editUndo()" title="Undo (u, Ctrl+Z)" id="edit-undo-btn" disabled>
+                                    <span class="tool-icon">↩</span>
+                                    <span class="tool-label">Undo</span>
+                                </button>
+                                <button class="edit-tool-btn" onclick="editRedo()" title="Redo (Ctrl+Y)" id="edit-redo-btn" disabled>
+                                    <span class="tool-icon">↪</span>
+                                    <span class="tool-label">Redo</span>
+                                </button>
+                                <button class="edit-tool-btn danger" onclick="editReset()" title="Reset all edits">
+                                    <span class="tool-icon">✕</span>
+                                    <span class="tool-label">Reset</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Edit status bar -->
+                        <div class="edit-status-bar">
+                            <div class="edit-status-info">
+                                <span id="edit-dimensions">0 × 0</span>
+                                <span class="edit-divider">|</span>
+                                <span id="edit-changes-count">No changes</span>
+                            </div>
+                            <div class="edit-status-actions">
+                                <div class="edit-save-options">
+                                    <input type="text" id="edit-prefix" placeholder="Prefix" class="edit-name-input">
+                                    <span class="edit-filename" id="edit-filename">image</span>
+                                    <input type="text" id="edit-suffix" value="_edited" placeholder="Suffix" class="edit-name-input">
+                                    <span class="edit-extension" id="edit-extension">.jpg</span>
+                                </div>
+                                <button class="edit-action-btn primary" onclick="saveEditedImage()" id="edit-save-btn" disabled>
+                                    Save Copy
+                                </button>
+                                <button class="edit-action-btn" onclick="closeEditMode()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Crop selection overlay (shown when cropping) -->
+                    <div id="edit-crop-overlay" class="edit-crop-overlay" style="display: none;">
+                        <div class="edit-crop-instructions">
+                            Click and drag to select crop area
+                        </div>
+                        <div class="edit-crop-actions">
+                            <button class="edit-action-btn primary" onclick="applyCropSelection()">Apply Crop</button>
+                            <button class="edit-action-btn" onclick="cancelCropSelection()">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- Resize dialog (shown when resizing) -->
+                    <div id="edit-resize-dialog" class="edit-resize-dialog" style="display: none;">
+                        <div class="edit-dialog-content">
+                            <h4>Resize Image</h4>
+                            <div class="edit-resize-inputs">
+                                <label>
+                                    Width:
+                                    <input type="number" id="edit-resize-width" min="1">
+                                </label>
+                                <span class="resize-link">🔗</span>
+                                <label>
+                                    Height:
+                                    <input type="number" id="edit-resize-height" min="1">
+                                </label>
+                            </div>
+                            <label class="edit-checkbox-label">
+                                <input type="checkbox" id="edit-resize-aspect" checked>
+                                Lock aspect ratio
+                            </label>
+                            <div class="edit-dialog-actions">
+                                <button class="edit-action-btn primary" onclick="applyResizeEdit()">Apply</button>
+                                <button class="edit-action-btn" onclick="cancelResizeEdit()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legacy crop overlay (keeping for non-edit mode) -->
+                <div id="crop-overlay" class="crop-overlay" style="display: none;">
+                    <div class="crop-container">
+                        <div id="crop-box" class="crop-box"></div>
+                    </div>
+                    <div class="crop-controls">
+                        <button class="crop-btn" onclick="applyCrop()">Apply Crop</button>
+                        <button class="crop-btn cancel" onclick="cancelCrop()">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Resize dialog -->
+                <div id="resize-dialog" class="dialog" style="display: none;">
+                    <div class="dialog-content">
+                        <h3>Resize Image</h3>
+                        <div class="dialog-inputs">
+                            <label>
+                                Width:
+                                <input type="number" id="resize-width" min="1">
+                            </label>
+                            <label>
+                                Height:
+                                <input type="number" id="resize-height" min="1">
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="resize-aspect" checked>
+                                Maintain aspect ratio
+                            </label>
+                        </div>
+                        <div class="dialog-actions">
+                            <button class="dialog-btn" onclick="applyResize()">Apply</button>
+                            <button class="dialog-btn cancel" onclick="closeResizeDialog()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Help Overlay -->
+    <div id="help-overlay" class="help-overlay" style="display: none;">
+        <div class="help-content">
+            <div class="help-header">
+                <h2>Keyboard Shortcuts</h2>
+                <button class="help-close" onclick="closeHelp()">&times;</button>
+            </div>
+
+            <div class="help-sections">
+                <!-- Gallery View Shortcuts -->
+                <div class="help-section" id="help-gallery">
+                    <h3>Gallery View</h3>
+                    <div class="shortcut-list">
+                        <div class="shortcut"><kbd>?</kbd> <span>Show this help</span></div>
+                        <div class="shortcut"><kbd>Esc</kbd> <span>Close dialogs</span></div>
+                    </div>
+                </div>
+
+                <!-- Viewer Shortcuts -->
+                <div class="help-section" id="help-viewer">
+                    <h3>Image Viewer</h3>
+                    <div class="shortcut-list">
+                        <div class="shortcut"><kbd>h</kbd> / <kbd>←</kbd> <span>Previous image</span></div>
+                        <div class="shortcut"><kbd>l</kbd> / <kbd>→</kbd> <span>Next image</span></div>
+                        <div class="shortcut"><kbd>j</kbd> / <kbd>↓</kbd> <span>Next image</span></div>
+                        <div class="shortcut"><kbd>k</kbd> / <kbd>↑</kbd> <span>Previous image</span></div>
+                        <div class="shortcut"><kbd>g</kbd> <span>First image</span></div>
+                        <div class="shortcut"><kbd>G</kbd> <span>Last image</span></div>
+                        <div class="shortcut"><kbd>Space</kbd> <span>Toggle menu</span></div>
+                        <div class="shortcut"><kbd>e</kbd> <span>Open edit mode</span></div>
+                        <div class="shortcut"><kbd>Delete</kbd> / <kbd>x</kbd> <span>Delete image</span></div>
+                        <div class="shortcut"><kbd>q</kbd> / <kbd>Esc</kbd> <span>Back to gallery</span></div>
+                        <div class="shortcut"><kbd>?</kbd> <span>Show this help</span></div>
+                    </div>
+                </div>
+
+                <!-- Edit Mode Shortcuts -->
+                <div class="help-section" id="help-edit">
+                    <h3>Edit Mode</h3>
+                    <div class="shortcut-list">
+                        <div class="shortcut"><kbd>r</kbd> <span>Rotate left 90°</span></div>
+                        <div class="shortcut"><kbd>R</kbd> <span>Rotate right 90°</span></div>
+                        <div class="shortcut"><kbd>f</kbd> <span>Flip horizontal</span></div>
+                        <div class="shortcut"><kbd>F</kbd> <span>Flip vertical</span></div>
+                        <div class="shortcut"><kbd>c</kbd> <span>Crop</span></div>
+                        <div class="shortcut"><kbd>s</kbd> <span>Resize</span></div>
+                        <div class="shortcut"><kbd>u</kbd> / <kbd>Ctrl+Z</kbd> <span>Undo</span></div>
+                        <div class="shortcut"><kbd>Ctrl+Y</kbd> <span>Redo</span></div>
+                        <div class="shortcut"><kbd>Esc</kbd> <span>Exit edit mode</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-footer">
+                <p>Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <div id="delete-dialog" class="dialog" style="display: none;">
+        <div class="dialog-content delete-confirm">
+            <h3>Delete Image?</h3>
+            <p id="delete-filename">filename.jpg</p>
+            <p class="delete-warning">This action cannot be undone.</p>
+            <div class="dialog-actions">
+                <button class="dialog-btn danger" onclick="confirmDelete()">Delete</button>
+                <button class="dialog-btn cancel" onclick="closeDeleteDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
