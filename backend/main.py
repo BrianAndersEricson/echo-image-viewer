@@ -27,7 +27,7 @@ async def auth_middleware(request: Request, call_next):
     path = request.url.path
 
     # Always allow auth-related endpoints and login page
-    public_paths = ["/api/auth/", "/login.html", "/login"]
+    public_paths = ["/api/auth/", "/login.html", "/login", "/manifest.json", "/sw.js", "/icons/", "/favicon.svg"]
     if any(path.startswith(p) for p in public_paths):
         return await call_next(request)
 
