@@ -93,6 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize keyboard controls
     initKeyboardControls();
 
+    // Initialize touch controls (for mobile gestures)
+    initTouchControls();
+
     // Initialize click event delegation for data-action elements
     initClickHandlers();
 
@@ -442,6 +445,32 @@ function initKeyboardControls() {
         } else if (key === 'delete' || key === 'x') {
             e.preventDefault();
             openDeleteDialog();
+        }
+    });
+}
+
+// Touch Controls (for mobile blackout gesture)
+function initTouchControls() {
+    let touchStartTime = 0;
+    let touchFingers = 0;
+
+    document.addEventListener('touchstart', (e) => {
+        // Track number of fingers and start time
+        touchFingers = e.touches.length;
+        touchStartTime = Date.now();
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+        // Check if it was a quick tap (less than 300ms)
+        const touchDuration = Date.now() - touchStartTime;
+        if (touchDuration > 300) return;
+
+        // Three-finger tap toggles blackout when viewer is active or blackout is on
+        if (touchFingers === 3) {
+            if (state.blackout || viewerView.classList.contains('active')) {
+                e.preventDefault();
+                toggleBlackout();
+            }
         }
     });
 }
